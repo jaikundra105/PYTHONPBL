@@ -468,3 +468,41 @@ def get_all_skills() -> List[str]:
         skills.update(j.required_skills)
         skills.update(j.nice_to_have)
     return sorted(skills)
+    
+import streamlit as st
+
+st.title("💼 Job Recommendation System")
+
+# User Inputs
+skills_input = st.text_input("Enter your skills (comma separated)")
+experience = st.selectbox("Select Experience Level", ["fresher", "mid", "senior"])
+domains = st.multiselect("Preferred Domains", get_all_domains())
+
+# Button
+if st.button("Get Recommendations"):
+    if not skills_input:
+        st.warning("Please enter at least one skill.")
+    else:
+        skills_list = skills_input.split(",")
+
+        results = recommend(
+            user_skills_raw=skills_list,
+            experience_level=experience,
+            preferred_domains=domains if domains else None
+        )
+
+        if not results:
+            st.error("No matching jobs found 😢")
+        else:
+            for r in results:
+                st.subheader(f"📌 {r.job.title} ({r.job.domain})")
+                st.write(f"💯 Match Score: {r.match_score}")
+                st.write(f"📊 Experience Required: {r.job.experience_level}")
+                st.write(f"💰 Salary: {r.job.salary_range[0]} - {r.job.salary_range[1]} LPA")
+
+                st.write(f"✅ Matched Skills: {', '.join(r.matched_required + r.matched_nice)}")
+                st.write(f"❌ Missing Skills: {', '.join(r.missing_skills)}")
+
+                st.write(f"📄 {r.job.description}")
+                st.write(f"🚀 Growth Path: {r.job.growth_path}")
+                st.markdown("---")
